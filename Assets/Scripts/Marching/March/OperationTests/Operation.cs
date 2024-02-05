@@ -39,9 +39,9 @@ namespace Marching.Operations
 			return (Vector3.zero, Vector3.zero);
 		}
 
-		public virtual float Sample(Vector3 worldPoint)
+		public virtual void Sample(Vector3 worldPoint, ref float f)
 		{
-			return 0;
+			f = 0;
 		}
 	}
 }

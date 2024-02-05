@@ -19,5 +19,17 @@ namespace Marching
 			       && (point.z >= min.z && point.z <= max.z);
 		}
 
+		//https://iquilezles.org/articles/smin/
+		public static float SmoothMinCubic(float a, float b, float k)
+		{
+				float h = Mathf.Max(k - Mathf.Abs(a - b), 0f) / k;
+				return Mathf.Min(a, b) - h * h * h * k * (1f / 6f);
+		}
+
+		float SmoothMinPolynomial(float a, float b, float k)
+		{
+			float h = Mathf.Max(k - Mathf.Abs(a - b), 0f) / k;
+			return Mathf.Min(a, b) - h * h * k * (1f / 4f);
+		}
 	}
 }

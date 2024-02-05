@@ -10,8 +10,9 @@ namespace Marching
 		[SerializeField] private Transform _meshParent;
 		[Min(1)][Tooltip("Chunks per axis.")]
 		[SerializeField] private int _divisions;//not number of slices, but number of chunks per axis.
-
 		[SerializeField] private Material _material;
+		[Min(1)]
+		[SerializeField] private int chunkUpdatesPerFrame;
 		
 		private int _chunkSize;//points per chunk in volume space.
 
@@ -20,6 +21,7 @@ namespace Marching
 		[Range(0, 1)] public float smoothness;
 		public float SurfaceLevel = 0;
 
+		private readonly List<GenerateMesh> _chunkNeedingUpdate = new List<GenerateMesh>();
 		//Debugging
 		private Vector3Int _lastEditMin;
 		private Vector3Int _lastEditMax;
@@ -45,12 +47,16 @@ namespace Marching
 			_lastEditMin = boundsMin;
 			_lastEditMax = boundsMax;
 			
+			
 			//for every chunk overlapping the bounds of what changed, update it.
 			foreach (var c in _chunks.Values)
 			{
 				if (GeometryUtility.CubesIntersect(c.PointsMin, c.PointsMax, boundsMin, boundsMax))
 				{
-					c.UpdateMesh();
+					if (!_chunkNeedingUpdate.Contains(c))
+					{
+						_chunkNeedingUpdate.Add(c);
+					}
 					c.DebugGizmoColor = Color.green;
 				}
 				else
@@ -59,6 +65,26 @@ namespace Marching
 				}
 			}
 		}
+
+		private void Update()
+		{
+			//todo: we would like to keep the chunks in a sorted list, and only update the ones closest to camera.
+			//todo: we would like to isolated-update the chunks that are out of the camera frustum, on the interior of meshes, empty, or otherwise irrelevant. we can't do this chunk-wise (chunks might be empty). 
+			
+			int count = _chunkNeedingUpdate.Count;
+			if (count > 0)
+			{
+				for (int i = Mathf.Min(count, chunkUpdatesPerFrame)-1; i >= 0; i--)
+				{
+					_chunkNeedingUpdate[i].UpdateMesh();
+					_chunkNeedingUpdate.RemoveAt(i);//we loop through the list in reverse in order to modify it as we go.
+					//this has the unintended consequence of a FILO setup. Will that be a problem? maybe!
+				}
+			}
+			
+			
+		}
+
 		public void GenerateChunks()
 		{
 			//todo: runtime reset, destroy children.

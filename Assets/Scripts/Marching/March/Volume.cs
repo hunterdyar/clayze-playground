@@ -3,6 +3,7 @@ using Unity.Mathematics;
 using UnityEngine;
 using Random = UnityEngine.Random;
 using Marching.Operations;
+using GeometryUtility = Marching.GeometryUtility;
 
 public class Volume : MonoBehaviour
 {
@@ -47,7 +48,7 @@ public class Volume : MonoBehaviour
     {
         //this needs to sample the point across all operations. 
         //foreach operation... point...
-        _f = 0;
+        _f = 1;
         foreach (var operation in operationObjects)
         {
             //todo: keep a list of active objects
@@ -55,7 +56,9 @@ public class Volume : MonoBehaviour
             {
                 continue;
             }
-            _f = _f - operation.Sample(VolumeToWorld(x,y,z));
+            // _f = _f + operation.Sample(VolumeToWorld(x,y,z));
+            //_f = GeometryUtility.SmoothMinCubicPolynomial(_f, operation.Sample(VolumeToWorld(x, y, z)), 0.1f);
+            operation.Sample(VolumeToWorld(x, y, z),ref _f);
         }
         return _f;
     }
@@ -94,6 +97,8 @@ public class Volume : MonoBehaviour
     
     public void GenerateInBounds(ref ComputeBuffer pointsBuffer, Vector3Int min, Vector3Int max)
     {
+        //todo: when we calculate points, we can do a flag for "any value > 0"
+
         //can we cache the chunkSize? or just pass that in? Then we could make data once, and not collect garbage
         int size = max.x - min.x;//assume square.
         data = new float4[size*size*size]; //if PointCount changes, this has to be updated.
@@ -119,7 +124,7 @@ public class Volume : MonoBehaviour
                     //hypothetically we are looping in the appropriate order such that we don't need to do IndexFromCoord.
                     //THis will stop being true later, so I'm leaving it 
                     data[IndexFromCoord(dx, dy, dz,size)] =
-                        new float4((float)p.x, (float)p.y, (float)p.z, SamplePoint(dx+min.x,dy+min.y,dz+min.z));
+                        new float4((float)p.x, (float)p.y, (float)p.z, -SamplePoint(dx+min.x,dy+min.y,dz+min.z));
                     index++;
                 }
             }

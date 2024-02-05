@@ -13,9 +13,9 @@ namespace Marching
 		private Volume _volume;
 		private VolumeRenderer _volumeRenderer;
 
-		public ComputeShader MarchingCubeCompute => _volumeRenderer.MarchingCompute;
-		public float SurfaceLevel => _volumeRenderer.SurfaceLevel;
-		public float Smoothness => _volumeRenderer.smoothness;
+		private ComputeShader MarchingCubeCompute => _volumeRenderer.MarchingCompute;
+		private float SurfaceLevel => _volumeRenderer.SurfaceLevel;
+		private float Smoothness => _volumeRenderer.smoothness;
 		
 		public Vector3Int PointsMin;
 		public Vector3Int PointsMax;
@@ -78,7 +78,6 @@ namespace Marching
 			{
 				UpdateMesh();
 			}
-			
 		}
 
 		void CreateBuffers()

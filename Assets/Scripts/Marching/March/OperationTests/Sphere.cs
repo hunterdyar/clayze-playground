@@ -20,9 +20,13 @@ namespace Marching.Operations
 			_lastPosition = transform.position;
 			_lastRadius = radius;
 		}
-		public override float Sample(Vector3 worldPoint)
+		public override void Sample(Vector3 worldPoint, ref float f)
 		{
-			return Mathf.Clamp(radius - Vector3.Distance(transform.position, worldPoint),-1,1);
+			//todo: use square distance
+			float s = -Mathf.Clamp(radius - Vector3.Distance(transform.position, worldPoint),-1,1);
+			//s = Mathf.Round(s);
+			f = Marching.GeometryUtility.SmoothMinCubic(f, s,0.25f);
+		//f = f + s;
 		}
 
 		public override (Vector3, Vector3) OperationWorldBounds()

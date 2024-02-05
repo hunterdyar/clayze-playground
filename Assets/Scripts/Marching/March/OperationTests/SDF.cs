@@ -34,11 +34,12 @@ namespace Marching.Operations
 			return (w,w + new Vector3(scale, scale, scale));
 		}
 
-		public override float Sample(Vector3 world)
+		public override void Sample(Vector3 world, ref float f)
 		{
 			if (!GeometryUtility.PointInBounds(world, _min, _max))
 			{
-				return 0;
+				//don't touch f
+				return;
 			}
 			//Vector3 world = _volume.VolumeToWorld(volPos);
 			Vector3 local = transform.InverseTransformPoint(world);
@@ -53,7 +54,9 @@ namespace Marching.Operations
 			var uvw = new Vector3(local.x, local.y, local.z);
 			//uvw = uvw*sdf.
 			//todo: normalize to aspect ratio of texture.
-			return Mathf.Clamp(-sdf.GetPixelBilinear(uvw.x,uvw.y,uvw.z,mipMapLevel).r,-1,1);
+			
+			float s= Mathf.Clamp(sdf.GetPixelBilinear(uvw.x,uvw.y,uvw.z,mipMapLevel).r,-1,1);
+			f = Mathf.Min(s, f);
 		}
 	}
 }
