@@ -2,7 +2,7 @@
 
 namespace Marching.Operations
 {
-	public class Sphere : Operation
+	public class Sphere : OperationObject
 	{
 		public float radius;
 
@@ -12,21 +12,21 @@ namespace Marching.Operations
 
 		public override bool DidUpdate()
 		{
-			return _lastRadius != radius || _lastPosition != transform.position;
+			return _lastRadius != radius || _lastPosition != transform.position || base.DidUpdate();
 		}
 
-		private void LateUpdate()
+		protected override void LateUpdate()
 		{
 			_lastPosition = transform.position;
 			_lastRadius = radius;
+			base.LateUpdate();
 		}
 		public override void Sample(Vector3 worldPoint, ref float f)
 		{
 			//todo: use square distance
 			float s = -Mathf.Clamp(radius - Vector3.Distance(transform.position, worldPoint),-1,1);
 			//s = Mathf.Round(s);
-			f = Marching.GeometryUtility.SmoothMinCubic(f, s,0.25f);
-		//f = f + s;
+			f = Mix(f, s);
 		}
 
 		public override (Vector3, Vector3) OperationWorldBounds()

@@ -18,7 +18,7 @@ public class Volume : MonoBehaviour
     public int Size => _size;
     [SerializeField][Min(2)] private int _size;
     public float pointsPerUnit = 1;
-    public Operation[] operationObjects;
+    public OperationObject[] operationObjects;
 
     private float _f;
     private float4[] data;

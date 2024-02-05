@@ -168,6 +168,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _volume: {fileID: 952140797}
+  _operationType: 0
   scale: 1
   sdf: {fileID: 11700000, guid: 25a592408dc40464c907726786d1982c, type: 2}
   mipMapLevel: 0
@@ -391,6 +392,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _volume: {fileID: 952140797}
+  _operationType: 0
   radius: 2.34
 --- !u!4 &1338614945
 Transform:
@@ -437,6 +439,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _volume: {fileID: 952140797}
+  _operationType: 0
   scale: 1
   sdf: {fileID: 11700000, guid: 25a592408dc40464c907726786d1982c, type: 2}
   mipMapLevel: 0
@@ -485,6 +488,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _volume: {fileID: 952140797}
+  _operationType: 1
   radius: 1.99
 --- !u!4 &1902287494
 Transform:

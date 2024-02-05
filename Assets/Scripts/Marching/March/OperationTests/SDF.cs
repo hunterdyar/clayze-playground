@@ -3,29 +3,29 @@ using UnityEngine;
 
 namespace Marching.Operations
 {
-	public class SDF : Operation
+	public class SDF : OperationObject
 	{
 		public float scale;
 		public Texture3D sdf;//cpu memory
-		private Vector3 prevPosition;
-		private float prevScale;
+		private Vector3 _prevPosition;
+		private float _prevScale;
 		[Tooltip("mip level of the texture3D to sample. 0 is highest, default. increase for better performance.")]
 		public int mipMapLevel = 0;
 
 		
 		public override bool DidUpdate()
 		{
-			return prevPosition != transform.position || prevScale != scale;
+			return _prevPosition != transform.position || _prevScale != scale || base.DidUpdate();
 		}
 
 		private void NormalizeSDF()
 		{
 			//read every point, normalize it to how we want our data (?) 
 		}
-		private void LateUpdate()
+		protected override void LateUpdate()
 		{
-			prevPosition = transform.position;
-			prevScale = scale;
+			_prevPosition = transform.position;
+			_prevScale = scale;
 		}
 
 		public override (Vector3, Vector3) OperationWorldBounds()
@@ -56,7 +56,7 @@ namespace Marching.Operations
 			//todo: normalize to aspect ratio of texture.
 			
 			float s= Mathf.Clamp(sdf.GetPixelBilinear(uvw.x,uvw.y,uvw.z,mipMapLevel).r,-1,1);
-			f = Mathf.Min(s, f);
+			f = Mix(f, s);
 		}
 	}
 }
