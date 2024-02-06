@@ -9,14 +9,19 @@ namespace Connection
 	public class OperationCollectionNetworkUpdater : NetworkBehaviour
 	{
 		[SerializeField] private OperationCollection _opCol;
-		public NetworkList<OpContainer> _networkOperation = new NetworkList<OpContainer>();
+		private NetworkList<OpContainer> _networkOperations;
+
+		private void Awake()
+		{
+			_networkOperations = new NetworkList<OpContainer>();
+		}
 
 		private void Start()
 		{
 			Initialize();
 		}
 
-		private void NetworkOperationOnOnListChanged(NetworkListEvent<OpContainer> changeEvent)
+		private void NetworkOperationsOnOnListChanged(NetworkListEvent<OpContainer> changeEvent)
 		{
 			if (!IsLocalPlayer)
 			{
@@ -53,7 +58,7 @@ namespace Connection
 		private void Initialize()
 		{
 			_opCol.Clear();
-			foreach (var val in _networkOperation)
+			foreach (var val in _networkOperations)
 			{
 				_opCol.Add(val.GetOperation());
 			}
@@ -61,12 +66,12 @@ namespace Connection
 
 		private void OnEnable()
 		{
-			_networkOperation.OnListChanged += NetworkOperationOnOnListChanged;
+			_networkOperations.OnListChanged += NetworkOperationsOnOnListChanged;
 		}
 
 		private void OnDisable()
 		{
-			_networkOperation.OnListChanged -= NetworkOperationOnOnListChanged;
+			_networkOperations.OnListChanged -= NetworkOperationsOnOnListChanged;
 		}
 
 		public override void OnNetworkSpawn()
@@ -84,7 +89,7 @@ namespace Connection
 				AddServerRpc(new OpContainer(op));
 			}else if (IsServer || IsHost)
 			{
-				_networkOperation.Add(new OpContainer(op));
+				_networkOperations.Add(new OpContainer(op));
 			}
 		}
 
@@ -92,7 +97,7 @@ namespace Connection
 		[ServerRpc(RequireOwnership = false)]
 		public void AddServerRpc(OpContainer op)
 		{
-			_networkOperation.Add(op);
+			_networkOperations.Add(op);
 		}
 	}
 }
