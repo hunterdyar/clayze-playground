@@ -24,7 +24,8 @@ public class Volume : MonoBehaviour
     private float4[] data;
 
     public Texture3D testTexture;
-    
+    [SerializeField] private OperationCollection _opCol;
+
     public void UpdateSize(int newSize)
     {
         if (_size == newSize )
@@ -41,6 +42,32 @@ public class Volume : MonoBehaviour
         {
             op.SetVolume(this);
         }
+    }
+
+    private void OnEnable()
+    {
+        _opCol.OperationChanged += OperationChanged;
+    }
+
+    private void OnDisable()
+    {
+        _opCol.OperationChanged -= OperationChanged;
+    }
+
+    private void OperationChanged(IOperation op)
+    {
+        OperationChanged(op.OperationWorldBounds());
+    }
+
+    public void OperationChanged((Vector3, Vector3) worldBounds)
+    {
+        OnChange?.Invoke(WorldToLocal(worldBounds.Item1), WorldToLocal(worldBounds.Item2));
+    }
+
+    [ContextMenu("Resample All")]
+    public void ResampleAll()
+    {
+        OperationChanged((transform.position,transform.TransformPoint(new Vector3(_size/pointsPerUnit,_size/pointsPerUnit,_size/pointsPerUnit))));
     }
     //normally we like a vector3int parameter for readability over garbage collection, but this get's called 'thousands of times a frame' not 'every frame' often.
 
@@ -60,6 +87,16 @@ public class Volume : MonoBehaviour
             //_f = GeometryUtility.SmoothMinCubicPolynomial(_f, operation.Sample(VolumeToWorld(x, y, z)), 0.1f);
             operation.Sample(VolumeToWorld(x, y, z),ref _f);
         }
+
+        foreach (var op in _opCol)
+        {
+            if (op.OperationType == OperationType.Pass)
+            {
+                continue;
+            }
+            op.Sample(VolumeToWorld(x,y,z),ref _f);
+        }
+        
         return _f;
     }
 
@@ -157,8 +194,5 @@ public class Volume : MonoBehaviour
             }
         }
     }
-    public void OperationChanged((Vector3, Vector3) worldBounds)
-    {
-        OnChange?.Invoke(WorldToLocal(worldBounds.Item1),WorldToLocal(worldBounds.Item2));
-    }
+   
 }

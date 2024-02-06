@@ -172,7 +172,7 @@ MonoBehaviour:
   NetworkConfig:
     ProtocolVersion: 0
     NetworkTransport: {fileID: 651472691}
-    PlayerPrefab: {fileID: 8269901574739015747, guid: 21bc4f52531c80a41900f1a16b99c4ae,
+    PlayerPrefab: {fileID: 5931331164282309236, guid: ee2fa03ae8eed4149bb141a5d45cb5e2,
       type: 3}
     Prefabs:
       NetworkPrefabsLists:
@@ -234,6 +234,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: fca1cd42f5f34bfabfc3debaa44de1a4, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  gameplayScene: VolumeScene
+  menuScene: DesktopMenu
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0

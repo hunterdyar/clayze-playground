@@ -20,6 +20,8 @@ public class Initializer : MonoBehaviour
 
 	private static Initializer _instance;
 
+	public string gameplayScene;
+	public string menuScene;
 	private void Awake()
 	{
 		if (_instance != null)
@@ -54,7 +56,7 @@ public class Initializer : MonoBehaviour
 	{
 		//todo: Check target settings to load appropriate UI.
 		//this does not have to be additive because networkmanager calls dontdestroyonload
-		SceneManager.LoadScene("DesktopMenu", LoadSceneMode.Single);
+		SceneManager.LoadScene(menuScene, LoadSceneMode.Single);
 	}
 
 	#region NetworkCode
@@ -177,7 +179,7 @@ public class Initializer : MonoBehaviour
         NetworkManager.Singleton.StartHost();
         
         //todo: disconnect UI from making a thing do a thing.
-        NetworkManager.Singleton.SceneManager.LoadScene("SampleScene",LoadSceneMode.Single);
+        NetworkManager.Singleton.SceneManager.LoadScene(gameplayScene,LoadSceneMode.Single);
     }
 	#endregion
 

@@ -9,9 +9,9 @@ EditorBuildSettings:
     path: Assets/Scenes/NetTesting/Connect.unity
     guid: 672b6240f836d204d9f60101a03022ad
   - enabled: 1
-    path: Assets/Scenes/NetTesting/SampleScene.unity
-    guid: 99c9720ab356a0642a771bea13969a05
-  - enabled: 1
     path: Assets/Scenes/NetTesting/DesktopMenu.unity
     guid: 09754c400ea923145a3b3ec25822a611
+  - enabled: 1
+    path: Assets/Scenes/MarchingCubes/VolumeScene.unity
+    guid: 79edd8ab30e72d0458d81b015233eb9c
   m_configObjects: {}
