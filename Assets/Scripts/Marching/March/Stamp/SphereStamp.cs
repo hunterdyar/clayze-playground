@@ -12,6 +12,7 @@ namespace Marching
 		private float _distanceFromCamera = 5;
 		public float maxSphereDistanceFromCamera;
 		public float maxSphereSize;
+		private OperationType _opType = OperationType.Add;
 		private void Awake()
 		{
 			_netOpCollection = GetComponent<OperationCollectionNetworkUpdater>();
@@ -38,6 +39,15 @@ namespace Marching
 			
 			if (Input.GetMouseButtonDown(0))
 			{
+				if (Input.GetMouseButton(1))
+				{
+					_opType = OperationType.Remove;
+				}
+				else
+				{
+					_opType = OperationType.Add;
+				}
+				
 				Stamp();
 			}
 			
@@ -46,7 +56,7 @@ namespace Marching
 		[ContextMenu("Stamp")]
 		private void Stamp()
 		{
-			SphereOp op = new SphereOp(transform.position,radius, OperationType.Add);
+			SphereOp op = new SphereOp(transform.position,radius, _opType);
 			_netOpCollection.Add(op);
 			
 		}

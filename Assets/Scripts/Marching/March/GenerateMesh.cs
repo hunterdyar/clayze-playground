@@ -20,7 +20,8 @@ namespace Marching
 		public Vector3Int PointsMin;
 		public Vector3Int PointsMax;
 		private int Size => PointsMax.x - PointsMin.x;//todo: cache
-		
+		public Vector3Int Coord { get; set; }
+
 		[HideInInspector]
 		public Color DebugGizmoColor = Color.white;
 
@@ -30,6 +31,9 @@ namespace Marching
 		//settings
 		private int _threadsPerAxis;
 		private bool updatedThisFrame;
+
+		public Vector3 WorldCenter => _worldCenter;
+		private Vector3 _worldCenter;
 		
 		//Properties
 		ComputeBuffer _pointsBuffer;
@@ -69,6 +73,7 @@ namespace Marching
 		{
 			CreateBuffers();
 			ConfigureThreadsPerAxis();
+			_worldCenter = _volume.transform.TransformPoint((_volume.VolumeToWorld(PointsMax - Vector3Int.one) + _volume.VolumeToWorld(PointsMin)) / 2);
 			UpdateMesh();
 		}
 
@@ -210,7 +215,7 @@ namespace Marching
 			//offset interior meshes...
 			float size = (Size-1) / _volume.pointsPerUnit;
 			Gizmos.color = new Color(DebugGizmoColor.r, DebugGizmoColor.g, DebugGizmoColor.b, 0.2f);
-			Gizmos.DrawWireCube(_volume.transform.TransformPoint((_volume.VolumeToWorld(PointsMax-Vector3Int.one) +_volume.VolumeToWorld(PointsMin))/2), new Vector3(size, size, size));
+			Gizmos.DrawWireCube(WorldCenter, new Vector3(size, size, size));
 		}
 	}
 }

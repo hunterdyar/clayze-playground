@@ -116,12 +116,17 @@ public class Volume : MonoBehaviour
         return new Vector3Int(Mathf.FloorToInt(world.x), Mathf.FloorToInt(world.y), Mathf.FloorToInt(world.z));
     }
 
-    public int IndexFromCoord(int x, int y, int z, int size)
+    public static int IndexFromCoord(int x, int y, int z, int size)
     {
         return
             z * size * size +
             y * size +
             x;
+    }
+
+    public int IndexFromCoord(int x, int y, int z)
+    {
+        return IndexFromCoord(x, y, z, _size);
     }
 
     public Vector3Int CoordFromIndex(int i)

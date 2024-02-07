@@ -31,5 +31,10 @@ namespace Marching
 			float h = Mathf.Max(k - Mathf.Abs(a - b), 0f) / k;
 			return Mathf.Min(a, b) - h * h * k * (1f / 4f);
 		}
+
+		public static float DistanceFromCamera(Vector3 position)
+		{
+			return (position - Camera.main.transform.position).sqrMagnitude;
+		}
 	}
 }
