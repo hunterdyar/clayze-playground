@@ -84,6 +84,12 @@ namespace Connection
 
 		public void Add(IOperation op)
 		{
+			//for testing in editor mode/local, things should still just work?
+			if (NetworkManager.Singleton == null)
+			{
+				_opCol.Add(op);
+			}
+			
 			if (IsClient)
 			{
 				AddServerRpc(new OpContainer(op));

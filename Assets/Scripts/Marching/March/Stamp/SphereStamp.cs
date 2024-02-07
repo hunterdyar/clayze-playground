@@ -9,7 +9,9 @@ namespace Marching
 	{
 		public float radius;
 		private OperationCollectionNetworkUpdater _netOpCollection;
-
+		private float _distanceFromCamera = 5;
+		public float maxSphereDistanceFromCamera;
+		public float maxSphereSize;
 		private void Awake()
 		{
 			_netOpCollection = GetComponent<OperationCollectionNetworkUpdater>();
@@ -17,10 +19,28 @@ namespace Marching
 
 		private void Update()
 		{
-			if (Input.GetKeyDown(KeyCode.S))
+			var pos = Camera.main.ScreenToWorldPoint(new Vector3(Input.mousePosition.x,Input.mousePosition.y,_distanceFromCamera));
+			transform.position = pos;
+
+			if (Mathf.Abs(Input.mouseScrollDelta.y) > 0)
+			{
+				if (Input.GetMouseButton(1))
+				{
+					radius += Input.mouseScrollDelta.y;
+					radius = Mathf.Clamp(radius, 0, maxSphereSize);
+				}
+				else
+				{
+					_distanceFromCamera += Input.mouseScrollDelta.y;
+					_distanceFromCamera = Mathf.Clamp(_distanceFromCamera, 1, maxSphereDistanceFromCamera);
+				}
+			}
+			
+			if (Input.GetMouseButtonDown(0))
 			{
 				Stamp();
 			}
+			
 		}
 
 		[ContextMenu("Stamp")]

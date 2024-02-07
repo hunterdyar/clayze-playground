@@ -615,6 +615,11 @@ PrefabInstance:
       propertyPath: m_Name
       value: Player Operations
       objectReference: {fileID: 0}
+    - target: {fileID: 6123709322872305360, guid: ee2fa03ae8eed4149bb141a5d45cb5e2,
+        type: 3}
+      propertyPath: maxSphereDistanceFromCamera
+      value: 30
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
