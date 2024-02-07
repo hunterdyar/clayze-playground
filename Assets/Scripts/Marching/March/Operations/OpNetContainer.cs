@@ -4,14 +4,14 @@ using UnityEngine;
 
 namespace Marching.Operations
 {
-	public struct OpContainer : IEquatable<OpContainer>, INetworkSerializable
+	public struct OpNetContainer : IEquatable<OpNetContainer>, INetworkSerializable
 	{
 		public OperationName opName;
 		public OperationType opType;
 		public Vector3 PositionA;
 		public float FloatA;
 		
-		public OpContainer(IOperation operation)
+		public OpNetContainer(IOperation operation)
 		{
 			opName = OperationName.Pass;
 			
@@ -42,14 +42,14 @@ namespace Marching.Operations
 			}
 		}
 
-		public bool Equals(OpContainer other)
+		public bool Equals(OpNetContainer other)
 		{
 			return opName == other.opName && opType == other.opType && PositionA.Equals(other.PositionA) && FloatA.Equals(other.FloatA);
 		}
 
 		public override bool Equals(object obj)
 		{
-			return obj is OpContainer other && Equals(other);
+			return obj is OpNetContainer other && Equals(other);
 		}
 
 		public override int GetHashCode()
