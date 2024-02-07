@@ -88,6 +88,7 @@ namespace Connection
 			if (NetworkManager.Singleton == null)
 			{
 				_opCol.Add(op);
+				return;
 			}
 			
 			if (IsClient)
