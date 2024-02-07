@@ -6,10 +6,10 @@ namespace Marching.Operations
 {
 	public struct OpNetContainer : IEquatable<OpNetContainer>, INetworkSerializable
 	{
-		public OperationName opName;
-		public OperationType opType;
-		public Vector3 PositionA;
-		public float FloatA;
+		private OperationName opName;
+		private OperationType opType;
+		private Vector3 PositionA;
+		private float FloatA;
 		
 		public OpNetContainer(IOperation operation)
 		{
