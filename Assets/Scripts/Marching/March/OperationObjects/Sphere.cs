@@ -23,8 +23,7 @@ namespace Marching.Operations
 		}
 		public override void Sample(Vector3 worldPoint, ref float f)
 		{
-			//todo: use square distance
-			float s = -Mathf.Clamp(radius - Vector3.Distance(transform.position, worldPoint),-1,1);
+			float s = -Mathf.Clamp(radius*radius - (transform.position- worldPoint).sqrMagnitude,-1,1);
 			//s = Mathf.Round(s);
 			f = Mix(f, s);
 		}

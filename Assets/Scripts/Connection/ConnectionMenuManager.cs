@@ -65,7 +65,7 @@ public class ConnectionMenuManager : MonoBehaviour
             _serverHostButton.interactable = false;
             _clientJoinButton.interactable = false;
         }
-        //todo: if we are trying to join or connect to host.
+        //todo: notification while we are trying to join or connect to host...
         _serverCloseButton.interactable = true;
         _clientJoinButton.interactable = true;
     }

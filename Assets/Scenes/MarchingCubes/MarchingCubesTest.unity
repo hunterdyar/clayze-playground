@@ -286,7 +286,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: eea8ef0f72a31ff4085364aa6d4c238e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _size: 8
+  _size: 32
   pointsPerUnit: 2
   operationObjects:
   - {fileID: 1933257369}

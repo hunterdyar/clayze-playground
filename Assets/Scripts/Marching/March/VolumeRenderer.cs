@@ -77,7 +77,9 @@ namespace Marching
 				}
 			}
 
-			//todo: We don't need to sort this every frame, only when the camera moves.
+			//todo: We don't need to sort this every frame, only when the camera moves, and even then, only after it moves a certain amount. Problem is, we keep adding/removing from this.
+			//so as is, it won't "stay sorted".
+			
 			//Whats faster, keeping a dictionary? "updateIfNeeded" and return true/false with a count, in our always-sorted list?
 			//how slow is this function?
 			_chunkNeedingUpdate.Sort(SortChunkByDistance);
@@ -135,13 +137,13 @@ namespace Marching
 						var mr = chunk.AddComponent<MeshRenderer>();
 						mr.material = _material;
 						var gen = chunk.AddComponent<GenerateMesh>();
-						gen.SetVolumeRenderer(this,_volume);
 
 						//Set appropriate points bounds.
 						gen.Coord = new Vector3Int(i, j, k);
 						var min = gen.Coord * _chunkSize;
-						gen.PointsMin = min;
-						gen.PointsMax = new Vector3Int(min.x + _chunkSize, min.y + _chunkSize, min.z + _chunkSize)+Vector3Int.one;
+						var max = new Vector3Int(min.x + _chunkSize, min.y + _chunkSize, min.z + _chunkSize)+Vector3Int.one;
+						gen.Initialize(this, _volume, min, max);
+
 						_chunks.Add(chunkPos,gen);
 					}
 				}

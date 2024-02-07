@@ -38,8 +38,7 @@ namespace Marching.Operations
 
 		public void Sample(Vector3 worldPoint, ref float f)
 		{
-			//todo: use square distance
-			float s = -Mathf.Clamp( _radius - Vector3.Distance(_center, worldPoint), -1, 1);
+			float s = -Mathf.Clamp( _radius*_radius - (_center - worldPoint).sqrMagnitude, -1, 1);
 			//s = Mathf.Round(s);
 			f = OpUtility.Mix(_operationType,f, s);
 		}

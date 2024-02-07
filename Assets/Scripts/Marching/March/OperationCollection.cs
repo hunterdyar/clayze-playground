@@ -61,7 +61,7 @@ namespace Marching.Operations
 			//todo: test that this preserves order correctly.
 			var i = _operations.IndexOf(oldVal);
 			_operations.RemoveAt(i);
-			_operations.Add(newVal);
+			_operations.Insert(i,newVal);
 			
 			if (oldVal.OperationWorldBounds() != newVal.OperationWorldBounds())
 			{

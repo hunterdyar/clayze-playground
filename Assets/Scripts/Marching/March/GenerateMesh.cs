@@ -17,9 +17,10 @@ namespace Marching
 		private float SurfaceLevel => _volumeRenderer.SurfaceLevel;
 		private float Smoothness => _volumeRenderer.smoothness;
 		
-		public Vector3Int PointsMin;
-		public Vector3Int PointsMax;
-		private int Size => PointsMax.x - PointsMin.x;//todo: cache
+		public Vector3Int PointsMin { get; private set; }
+		public Vector3Int PointsMax { get; private set; }
+		private int Size;
+		
 		public Vector3Int Coord { get; set; }
 
 		[HideInInspector]
@@ -63,18 +64,24 @@ namespace Marching
 			_meshFilter.sharedMesh = _mesh;
 		}
 
-		public void SetVolumeRenderer(VolumeRenderer volumeRenderer, Volume volume)
+		public void Initialize(VolumeRenderer volumeRenderer, Volume volume, Vector3Int min, Vector3Int max)
 		{
 			_volumeRenderer = volumeRenderer;
 			_volume = volume;
+			PointsMin = min;
+			PointsMax = max;
+			Size = max.x-min.x;
+			
+			CreateBuffers();
+			ConfigureThreadsPerAxis();
+			_worldCenter = _volume.transform.TransformPoint((_volume.VolumeToWorld(PointsMax - Vector3Int.one) +
+			                                                 _volume.VolumeToWorld(PointsMin)) / 2);
+			UpdateMesh();
+
 		}
 
 		private void Start()
 		{
-			CreateBuffers();
-			ConfigureThreadsPerAxis();
-			_worldCenter = _volume.transform.TransformPoint((_volume.VolumeToWorld(PointsMax - Vector3Int.one) + _volume.VolumeToWorld(PointsMin)) / 2);
-			UpdateMesh();
 		}
 
 		private void Update()
@@ -91,8 +98,6 @@ namespace Marching
 			int voxelsPerAxis = _volume.Size - 1;//points are volume determined
 			int numVoxels = voxelsPerAxis * voxelsPerAxis * voxelsPerAxis;
 			int maxTriangleCount = numVoxels * 5;//5 is max triangles per cube march shape... I believe.
-
-			//testing bleh. didn't change anything, so bug isn't buffer size... maxTriangleCount = maxTriangleCount * 2;
 			
 			if (_pointsBuffer == null || numPoints != _pointsBuffer.count)
 			{
@@ -143,7 +148,6 @@ namespace Marching
             }
 		}
 
-		//todo: turn into coroutine
 		public IEnumerator CreateMesh()
 		{
 			//todo: use a graphics fence to stop the gpu to wait for the cpu?
