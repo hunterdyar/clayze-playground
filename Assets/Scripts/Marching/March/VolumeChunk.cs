@@ -1,4 +1,5 @@
 ﻿using System.Collections;
+using Unity.Collections;
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Serialization;
@@ -6,7 +7,7 @@ using Object = System.Object;
 
 namespace Marching
 {
-	public class GenerateMesh : MonoBehaviour
+	public class VolumeChunk : MonoBehaviour
 	{
 		//setup
 		public bool ConstantRefresh;
@@ -41,8 +42,9 @@ namespace Marching
 		GraphicsBuffer _triangleBuffer;
 		GraphicsBuffer _triangleCountBuffer;
 		private CommandBuffer _computeCommandBuffer;
-		
+		private Triangle[] _tris;
 		private Mesh _mesh;
+		private bool _tryAsync;
 		
 		//shader prop cache
 		private static readonly int PointsPropName = Shader.PropertyToID("points");
@@ -76,19 +78,22 @@ namespace Marching
 			ConfigureThreadsPerAxis();
 			_worldCenter = _volume.transform.TransformPoint((_volume.VolumeToWorld(PointsMax - Vector3Int.one) +
 			                                                 _volume.VolumeToWorld(PointsMin)) / 2);
-			UpdateMesh();
+			UpdateMesh(false);//todo: this and in start? uh oh
 
 		}
 
 		private void Start()
 		{
+			CreateBuffers();
+			ConfigureThreadsPerAxis();
+			UpdateMesh(false);//first frame, no async we can to freeze and load.
 		}
 
 		private void Update()
 		{
 			if (ConstantRefresh)
 			{
-				UpdateMesh();
+				UpdateMesh(_tryAsync);
 			}
 		}
 
@@ -106,6 +111,10 @@ namespace Marching
 				_pointsBuffer = new ComputeBuffer(numPoints, sizeof(float) * 4,ComputeBufferType.Append);
 				_triangleCountBuffer = new GraphicsBuffer(GraphicsBuffer.Target.Raw,1, sizeof(int));
 				_computeCommandBuffer = new CommandBuffer();
+				if (SystemInfo.supportsAsyncGPUReadback)
+				{
+					_computeCommandBuffer.SetExecutionFlags(CommandBufferExecutionFlags.AsyncCompute);
+				}
 			}
 		}
 
@@ -120,7 +129,7 @@ namespace Marching
 		}
 		
 		[ContextMenu("Update Mesh")]
-		public void UpdateMesh(bool async = false)
+		public void UpdateMesh(bool asyncReadback)
 		{
             //Update the points buffer from the volume. Processes and copies data from CPU to GPU.
             _volume.GenerateInBounds(ref _pointsBuffer,PointsMin,PointsMax);
@@ -132,10 +141,10 @@ namespace Marching
             MarchingCubeCompute.SetFloat(LevelPropName, SurfaceLevel);
             MarchingCubeCompute.SetFloat(SmoothnessPropName,Smoothness);
             //do the thing.
-            if (!async || !SystemInfo.supportsAsyncCompute)
+            if (!asyncReadback || !SystemInfo.supportsAsyncGPUReadback)
             {
 	            MarchingCubeCompute.Dispatch(0, _threadsPerAxis, _threadsPerAxis, _threadsPerAxis);
-	            StartCoroutine(CreateMesh());
+	            StartCoroutine(CreateMesh(false));
             }
             else
             {
@@ -144,11 +153,11 @@ namespace Marching
 	            Graphics.ExecuteCommandBufferAsync(_computeCommandBuffer,ComputeQueueType.Default);
 	            //AsyncGPUReadback.Request(MarchingCubeCompute, CreateMesh);
 	            //when that's done...
-	            StartCoroutine(CreateMesh());
+	            StartCoroutine(CreateMesh(true));
             }
 		}
 
-		public IEnumerator CreateMesh()
+		public IEnumerator CreateMesh(bool asyncReadback)
 		{
 			//todo: use a graphics fence to stop the gpu to wait for the cpu?
 			
@@ -159,21 +168,68 @@ namespace Marching
 			int numTris = triCountArray[0];
 
 			// Get triangle data from shader
-			Triangle[] tris = new Triangle[numTris];
-			_triangleBuffer.GetData(tris, 0, 0, numTris);
+
+			var ntris = new NativeArray<Triangle>();
+			if (asyncReadback)
+			{
+				var request = AsyncGPUReadback.Request(_triangleBuffer);
+				while (!request.done)
+				{
+					yield return null;
+				}
+				if (request.hasError == false)
+				{
+					ntris = request.GetData<Triangle>(0);
+				}
+				else
+				{
+					Debug.Log("Something has gone wrong with an async readback request. Abandoning efforts.");
+					yield break;
+				}
+			}
+			else
+			{
+				//reduce garbage collection by only growing the triangle array.
+				//so we have to remember to use numTris instead of _tris.length when we iterate.
+				if (_tris == null || numTris > _tris.Length)
+				{
+					_tris = new Triangle[numTris];
+				}
+
+				_triangleBuffer.GetData(_tris, 0, 0, numTris);
+			}
+			
+			//cpu side mesh creation
 			_mesh.Clear();
 
 			var vertices = new Vector3[numTris * 3];
 			var meshTriangles = new int[numTris * 3];
 
-			for (int i = 0; i < numTris; i++)
+			if (asyncReadback)
 			{
-				for (int j = 0; j < 3; j++)
+				for (int i = 0; i < numTris; i++)
 				{
-					meshTriangles[i * 3 + j] = i * 3 + j;
-					vertices[i * 3 + j] = tris[i][j]; //times 2?
+					for (int j = 0; j < 3; j++)
+					{
+						meshTriangles[i * 3 + j] = i * 3 + j;
+						vertices[i * 3 + j] = ntris[i][j]; //times 2?
+					}
+				}
+				
+			}
+			else
+			{
+				for (int i = 0; i < numTris; i++)
+				{
+					for (int j = 0; j < 3; j++)
+					{
+						meshTriangles[i * 3 + j] = i * 3 + j;
+						// ReSharper disable once PossibleNullReferenceException
+						vertices[i * 3 + j] = _tris[i][j]; //times 2?
+					}
 				}
 			}
+			
 
 			_mesh.vertices = vertices;
 			_mesh.triangles = meshTriangles;

@@ -6,6 +6,16 @@ using UnityEngine.Rendering;
 
 namespace Marching
 {
+	/// <summary>
+	/// A Volume Renderer Instantiates a number of VolumeChunks, according to Division. These chunks get the mesh renderer, and update themselves with their own pointcache's and compute shader dispatches.
+	/// The Renderer listens for volume updates, and tells the appropriate chunks to update using unrotated bounding boxes.
+	/// The number of chunk upates per frame will affect performance. Chunks are sorted so that the ones closest to the camera update first.
+	/// Future optimizations....
+	///   - having chunks know if they are full or empty. If so, they can skip processing. If they are full, we can start occlusion culling or de-prioritizing updates.
+	///   - Frustum culling for chunk updates. Or even a naieve 'is behind the camera' plane culling: closest to camera sort does not know direction.
+	///   - 
+	/// </summary>
+	[RequireComponent(typeof(Volume))]
 	public class VolumeRenderer : MonoBehaviour
 	{
 		private Volume _volume;
@@ -17,12 +27,13 @@ namespace Marching
 		[SerializeField] private int chunkUpdatesPerFrame;
 		
 		private int _chunkSize;//points per chunk in volume space.
-		private readonly Dictionary<Vector3Int, GenerateMesh> _chunks = new Dictionary<Vector3Int, GenerateMesh>();
+
+		private readonly Dictionary<Vector3Int, VolumeChunk> _chunks = new Dictionary<Vector3Int, VolumeChunk>();
 		[Header("Pass-Through Configuration")] public ComputeShader MarchingCompute;
 		[Range(0, 1)] public float smoothness;
 		public float SurfaceLevel = 0;
 
-		private List<GenerateMesh> _chunkNeedingUpdate;
+		private readonly List<VolumeChunk> _chunkNeedingUpdate = new List<VolumeChunk>();
 		//Debugging
 		private Vector3Int _lastEditMin;
 		private Vector3Int _lastEditMax;
@@ -85,7 +96,7 @@ namespace Marching
 			_chunkNeedingUpdate.Sort(SortChunkByDistance);
 		}
 
-		public int SortChunkByDistance(GenerateMesh a, GenerateMesh b)
+		public int SortChunkByDistance(VolumeChunk a, VolumeChunk b)
 		{
 			var ad = GeometryUtility.DistanceFromCamera(a.WorldCenter);
 			var bd = GeometryUtility.DistanceFromCamera(b.WorldCenter);
@@ -104,7 +115,7 @@ namespace Marching
 				for (int i = 0; i < updateThisFrame; i++)
 				{
 					var c = _chunkNeedingUpdate[0];
-					c.UpdateMesh();
+					c.UpdateMesh(true);//todo: from settings
 					_chunkNeedingUpdate.RemoveAt(0);
 				}
 			}
@@ -121,7 +132,6 @@ namespace Marching
 			}
 			// ReSharper disable once PossibleLossOfFraction
 			_chunkSize = Mathf.CeilToInt(_volume.Size / _divisions);//we should just divide and check if it's a perfect division or not.
-			_chunkNeedingUpdate = new List<GenerateMesh>();
 			for (int i = 0; i < _divisions; i++)
 			{
 				for (int j = 0; j < _divisions; j++)
@@ -136,7 +146,7 @@ namespace Marching
 						chunk.AddComponent<MeshFilter>();
 						var mr = chunk.AddComponent<MeshRenderer>();
 						mr.material = _material;
-						var gen = chunk.AddComponent<GenerateMesh>();
+						var gen = chunk.AddComponent<VolumeChunk>();
 
 						//Set appropriate points bounds.
 						gen.Coord = new Vector3Int(i, j, k);
