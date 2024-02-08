@@ -80,3 +80,5 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   radius: 2
+  maxSphereDistanceFromCamera: 30
+  maxSphereSize: 15

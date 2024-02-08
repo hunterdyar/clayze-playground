@@ -5,8 +5,9 @@ using UnityEngine;
 namespace Marching.Operations
 {
 	[System.Serializable]
-	public struct SphereOp : IOperation, INetworkSerializable, IEquatable<SphereOp>
+	public struct SphereOp : IOperation, IEquatable<SphereOp>
 	{
+		public OperationName OpName => OperationName.Sphere;
 		public OperationType OperationType => _operationType;
 		[SerializeField] private OperationType _operationType;
 		public float Radius => _radius;
@@ -37,17 +38,9 @@ namespace Marching.Operations
 
 		public void Sample(Vector3 worldPoint, ref float f)
 		{
-			//todo: use square distance
-			float s = -Mathf.Clamp( _radius - Vector3.Distance(_center, worldPoint), -1, 1);
+			float s = -Mathf.Clamp( _radius*_radius - (_center - worldPoint).sqrMagnitude, -1, 1);
 			//s = Mathf.Round(s);
 			f = OpUtility.Mix(_operationType,f, s);
-		}
-
-		public void NetworkSerialize<T>(BufferSerializer<T> serializer) where T : IReaderWriter
-		{
-			serializer.SerializeValue(ref _operationType);
-			serializer.SerializeValue(ref _center);
-			serializer.SerializeValue(ref _radius);
 		}
 
 		public bool Equals(SphereOp other)

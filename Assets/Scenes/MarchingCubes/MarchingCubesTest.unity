@@ -286,8 +286,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: eea8ef0f72a31ff4085364aa6d4c238e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _size: 64
-  pointsPerUnit: 4
+  _size: 32
+  pointsPerUnit: 2
   operationObjects:
   - {fileID: 1933257369}
   testTexture: {fileID: 11700000, guid: 0930b79348921e4429846850b935abab, type: 2}
@@ -305,9 +305,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _meshParent: {fileID: 952140796}
-  _divisions: 2
+  _divisions: 8
   _material: {fileID: 2100000, guid: 55868c5cfb2ed7344ac3353ab3daf02f, type: 2}
-  chunkUpdatesPerFrame: 1
+  chunkUpdatesPerFrame: 512
   MarchingCompute: {fileID: 7200000, guid: e6675a5747764487687871eed95a316b, type: 3}
   smoothness: 1
   SurfaceLevel: 0.01
@@ -329,7 +329,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &1933257368
 Transform:
   m_ObjectHideFlags: 0
@@ -497,7 +497,7 @@ Transform:
   m_GameObject: {fileID: 1982802237}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 10.86, y: 1, z: -10}
+  m_LocalPosition: {x: 4, y: 4, z: -10}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []

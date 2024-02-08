@@ -61,7 +61,7 @@ namespace Marching.Operations
 			//todo: test that this preserves order correctly.
 			var i = _operations.IndexOf(oldVal);
 			_operations.RemoveAt(i);
-			_operations.Add(newVal);
+			_operations.Insert(i,newVal);
 			
 			if (oldVal.OperationWorldBounds() != newVal.OperationWorldBounds())
 			{
@@ -69,6 +69,17 @@ namespace Marching.Operations
 			}
 
 			OperationChanged?.Invoke(newVal);
+		}
+
+		public void Optimize()
+		{
+			//First, loop for operations whose bounding areas are the entire area, like ClearOp. Remove everything before ClearOp.
+			
+			//Remove Operations that are entirely contained inside of later operations.
+			//Start at the end of the list, and keep a boundingArea (?? list of points? boundingBoxes?)
+			//loop towards the start, and if an operation has all of it's points inside of this area, remove it. Else, add it's points to this set.
+			
+			
 		}
 	}
 }

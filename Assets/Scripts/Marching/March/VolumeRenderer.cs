@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
+using UnityEngine.Rendering;
 
 namespace Marching
 {
@@ -51,29 +53,54 @@ namespace Marching
 			_volume.OnChange -= VolumeChange;
 		}
 
+		
 		private void VolumeChange(Vector3Int boundsMin, Vector3Int boundsMax)
 		{
+			if(!GeometryUtility.CubesIntersect(boundsMin, boundsMax, Vector3Int.zero, new Vector3Int(_volume.Size, _volume.Size, _volume.Size)))
+			{
+				return;
+			}
 			//debugging, used to draw gizmos.
 			_lastEditMin = boundsMin;
 			_lastEditMax = boundsMax;
-			
-			
+
 			//for every chunk overlapping the bounds of what changed, update it.
-			foreach (var c in _chunks.Values)
+			foreach (var kvp in _chunks)
 			{
+				var c = kvp.Value;
+				
 				if (GeometryUtility.CubesIntersect(c.PointsMin, c.PointsMax, boundsMin, boundsMax))
 				{
-					if (!_chunkNeedingUpdate.Contains(c))
+					var key = _volume.IndexFromCoord(kvp.Key.x, kvp.Key.y, kvp.Key.z);
+					c.DebugGizmoColor = Color.blue;
+					if (!_chunkNeedingUpdate.Contains(kvp.Value))
 					{
-						_chunkNeedingUpdate.Add(c);
+						_chunkNeedingUpdate.Add(kvp.Value);
+						
+						//debugging
+						
+						c.DebugGizmoColor = Color.Lerp(Color.green,Color.magenta, 1-(_chunkNeedingUpdate.IndexOf(kvp.Value)/(float)_chunkNeedingUpdate.Count));
 					}
-					c.DebugGizmoColor = Color.green;
 				}
 				else
 				{
 					c.DebugGizmoColor = Color.white;
 				}
 			}
+
+			//todo: We don't need to sort this every frame, only when the camera moves, and even then, only after it moves a certain amount. Problem is, we keep adding/removing from this.
+			//so as is, it won't "stay sorted".
+			
+			//Whats faster, keeping a dictionary? "updateIfNeeded" and return true/false with a count, in our always-sorted list?
+			//how slow is this function?
+			_chunkNeedingUpdate.Sort(SortChunkByDistance);
+		}
+
+		public int SortChunkByDistance(GenerateMesh a, GenerateMesh b)
+		{
+			var ad = GeometryUtility.DistanceFromCamera(a.WorldCenter);
+			var bd = GeometryUtility.DistanceFromCamera(b.WorldCenter);
+			return ad.CompareTo(bd);
 		}
 
 		private void Update()
@@ -84,15 +111,14 @@ namespace Marching
 			int count = _chunkNeedingUpdate.Count;
 			if (count > 0)
 			{
-				for (int i = Mathf.Min(count, chunkUpdatesPerFrame)-1; i >= 0; i--)
+				int updateThisFrame = Mathf.Min(chunkUpdatesPerFrame, _chunkNeedingUpdate.Count); 
+				for (int i = 0; i < updateThisFrame; i++)
 				{
-					_chunkNeedingUpdate[i].UpdateMesh(true);
-					_chunkNeedingUpdate.RemoveAt(i);//we loop through the list in reverse in order to modify it as we go.
-					//this has the unintended consequence of a FILO setup. Will that be a problem? maybe!
+					var c = _chunkNeedingUpdate[0];
+					c.UpdateMesh();
+					_chunkNeedingUpdate.RemoveAt(0);
 				}
 			}
-			
-			
 		}
 
 		public void GenerateChunks()
@@ -106,7 +132,7 @@ namespace Marching
 			}
 			// ReSharper disable once PossibleLossOfFraction
 			_chunkSize = Mathf.CeilToInt(_volume.Size / _divisions);//we should just divide and check if it's a perfect division or not.
-
+			_chunkNeedingUpdate = new List<GenerateMesh>();
 			for (int i = 0; i < _divisions; i++)
 			{
 				for (int j = 0; j < _divisions; j++)
@@ -125,9 +151,11 @@ namespace Marching
 						gen.SetVolumeRenderer(this,_volume);
 
 						//Set appropriate points bounds.
-						var min = new Vector3Int(i * _chunkSize, j * _chunkSize, k * _chunkSize);
-						gen.PointsMin = min;
-						gen.PointsMax = new Vector3Int(min.x + _chunkSize, min.y + _chunkSize, min.z + _chunkSize)+Vector3Int.one;
+						gen.Coord = new Vector3Int(i, j, k);
+						var min = gen.Coord * _chunkSize;
+						var max = new Vector3Int(min.x + _chunkSize, min.y + _chunkSize, min.z + _chunkSize)+Vector3Int.one;
+						gen.Initialize(this, _volume, min, max);
+
 						_chunks.Add(chunkPos,gen);
 					}
 				}

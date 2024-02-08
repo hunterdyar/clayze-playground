@@ -6,7 +6,6 @@ namespace Marching
 	{
 		public static bool CubesIntersect(Vector3Int aMin, Vector3Int aMax, Vector3Int bMin, Vector3Int bMax)
 		{
-			//todo: move to utilities
 			return (aMax.x >= bMin.x && aMin.x <= bMax.x)
 			       && (aMax.y >= bMin.y && aMin.y <= bMax.y)
 			       && (aMax.z >= bMin.z && aMin.z <= bMax.z);
@@ -30,6 +29,11 @@ namespace Marching
 		{
 			float h = Mathf.Max(k - Mathf.Abs(a - b), 0f) / k;
 			return Mathf.Min(a, b) - h * h * k * (1f / 4f);
+		}
+
+		public static float DistanceFromCamera(Vector3 position)
+		{
+			return (position - Camera.main.transform.position).sqrMagnitude;
 		}
 	}
 }

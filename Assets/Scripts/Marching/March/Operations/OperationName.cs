@@ -4,6 +4,7 @@
 	{
 		Pass,
 		Sphere,
-		SDF
+		SDF,
+		Clear
 	}
 }

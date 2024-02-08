@@ -44,7 +44,7 @@ namespace Marching.Operations
 			//Vector3 world = _volume.VolumeToWorld(volPos);
 			Vector3 local = transform.InverseTransformPoint(world);
 			local = local / scale;
-			//todo: create a dictionary lookup and only update if changed.
+			//todo: create a dictionary lookup and only update if changed or moved? how do we only read from the sdf when we have to?
 			
 			//todo: apply the local transform of the object to rotate, etc, the sdf
 			

@@ -1,10 +1,12 @@
-﻿using Unity.Netcode;
+﻿using System;
+using Unity.Netcode;
 using UnityEngine;
 
 namespace Marching.Operations
 {
-	public interface IOperation : INetworkSerializable
+	public interface IOperation 
 	{
+		public OperationName OpName { get; }
 		public OperationType OperationType { get; }
 		public abstract (Vector3, Vector3) OperationWorldBounds();
 
