@@ -78,7 +78,7 @@ namespace Marching
 			ConfigureThreadsPerAxis();
 			_worldCenter = _volume.transform.TransformPoint((_volume.VolumeToWorld(PointsMax - Vector3Int.one) +
 			                                                 _volume.VolumeToWorld(PointsMin)) / 2);
-			UpdateMesh();
+			UpdateMesh(false);//todo: this and in start? uh oh
 
 		}
 
@@ -111,6 +111,10 @@ namespace Marching
 				_pointsBuffer = new ComputeBuffer(numPoints, sizeof(float) * 4,ComputeBufferType.Append);
 				_triangleCountBuffer = new GraphicsBuffer(GraphicsBuffer.Target.Raw,1, sizeof(int));
 				_computeCommandBuffer = new CommandBuffer();
+				if (SystemInfo.supportsAsyncGPUReadback)
+				{
+					_computeCommandBuffer.SetExecutionFlags(CommandBufferExecutionFlags.AsyncCompute);
+				}
 			}
 		}
 
@@ -125,7 +129,7 @@ namespace Marching
 		}
 		
 		[ContextMenu("Update Mesh")]
-		public void UpdateMesh(bool async)
+		public void UpdateMesh(bool asyncReadback)
 		{
             //Update the points buffer from the volume. Processes and copies data from CPU to GPU.
             _volume.GenerateInBounds(ref _pointsBuffer,PointsMin,PointsMax);
@@ -137,7 +141,7 @@ namespace Marching
             MarchingCubeCompute.SetFloat(LevelPropName, SurfaceLevel);
             MarchingCubeCompute.SetFloat(SmoothnessPropName,Smoothness);
             //do the thing.
-            if (!async || !SystemInfo.supportsAsyncCompute)
+            if (!asyncReadback || !SystemInfo.supportsAsyncGPUReadback)
             {
 	            MarchingCubeCompute.Dispatch(0, _threadsPerAxis, _threadsPerAxis, _threadsPerAxis);
 	            StartCoroutine(CreateMesh(false));
@@ -153,7 +157,7 @@ namespace Marching
             }
 		}
 
-		public IEnumerator CreateMesh()
+		public IEnumerator CreateMesh(bool asyncReadback)
 		{
 			//todo: use a graphics fence to stop the gpu to wait for the cpu?
 			
@@ -166,15 +170,21 @@ namespace Marching
 			// Get triangle data from shader
 
 			var ntris = new NativeArray<Triangle>();
-			if (async)
+			if (asyncReadback)
 			{
 				var request = AsyncGPUReadback.Request(_triangleBuffer);
 				while (!request.done)
 				{
-					if (request.hasError == false)
-					{
-						ntris = request.GetData<Triangle>(0);
-					}
+					yield return null;
+				}
+				if (request.hasError == false)
+				{
+					ntris = request.GetData<Triangle>(0);
+				}
+				else
+				{
+					Debug.Log("Something has gone wrong with an async readback request. Abandoning efforts.");
+					yield break;
 				}
 			}
 			else
@@ -195,7 +205,7 @@ namespace Marching
 			var vertices = new Vector3[numTris * 3];
 			var meshTriangles = new int[numTris * 3];
 
-			if (async)
+			if (asyncReadback)
 			{
 				for (int i = 0; i < numTris; i++)
 				{

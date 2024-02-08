@@ -96,7 +96,7 @@ namespace Marching
 			_chunkNeedingUpdate.Sort(SortChunkByDistance);
 		}
 
-		public int SortChunkByDistance(GenerateMesh a, GenerateMesh b)
+		public int SortChunkByDistance(VolumeChunk a, VolumeChunk b)
 		{
 			var ad = GeometryUtility.DistanceFromCamera(a.WorldCenter);
 			var bd = GeometryUtility.DistanceFromCamera(b.WorldCenter);
@@ -115,7 +115,7 @@ namespace Marching
 				for (int i = 0; i < updateThisFrame; i++)
 				{
 					var c = _chunkNeedingUpdate[0];
-					c.UpdateMesh();
+					c.UpdateMesh(true);//todo: from settings
 					_chunkNeedingUpdate.RemoveAt(0);
 				}
 			}
@@ -132,7 +132,6 @@ namespace Marching
 			}
 			// ReSharper disable once PossibleLossOfFraction
 			_chunkSize = Mathf.CeilToInt(_volume.Size / _divisions);//we should just divide and check if it's a perfect division or not.
-			_chunkNeedingUpdate = new List<GenerateMesh>();
 			for (int i = 0; i < _divisions; i++)
 			{
 				for (int j = 0; j < _divisions; j++)
@@ -148,7 +147,6 @@ namespace Marching
 						var mr = chunk.AddComponent<MeshRenderer>();
 						mr.material = _material;
 						var gen = chunk.AddComponent<VolumeChunk>();
-						gen.SetVolumeRenderer(this,_volume);
 
 						//Set appropriate points bounds.
 						gen.Coord = new Vector3Int(i, j, k);
